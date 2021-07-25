@@ -98,3 +98,4 @@ kwork.category_unauth_per_page              = 36                    ; колич
 
 maximum_results = 1000000;
 per_page_items = 12;
+order.per_page_items = 5;

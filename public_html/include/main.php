@@ -501,6 +501,87 @@ function insert_getParent($data)
 	return CategoryManager::getParent($categoryId, $type);
 }
 
+
+/**
+ * @param $a array
+ * @return string
+ */
+function insert_loadmore_block($a)
+{
+    global $smarty;
+
+    $totalPages = $a['data']['total'] <= App::config('maximum_results') ? $a['data']['total'] : App::config('maximum_results');
+
+    if (!$a['data']['total'] || !$a['data']['paging'])
+        return "";
+
+    $perPage = $a['data']['paging']->items_per_page;
+
+    $currentPage = (int) $a['data']['paging']->cur_page;
+
+    if($a['data']['paging']->customPages) {
+        $lastPage = count($a['data']['paging']->customPages);
+    } else {
+        $lastPage = (int) ceil($totalPages / $perPage);
+    }
+
+    $nextPage = $currentPage + 1;
+    $nextPageText = 'Загрузить еще ' . $perPage;
+
+    if ($nextPage === $lastPage) {
+        $nextPageText = 'Загрузить все';
+    }
+
+    if ($currentPage === $lastPage) {
+        return '';
+    }
+
+    $urlPrefix = $a['data']['urlprefix'];
+    $id = 'lm_' . md5($urlPrefix);
+
+    $adds = isset($a['data']['adds']) ? $a['data']['adds'] : "";
+
+    if (isset($a['data']['save_params']) && $a['data']['save_params'] == true) {
+        $params = getAll();
+        unset($params['page']);
+        $adds = '&'.http_build_query($params);
+    }
+
+    $js = '
+    <script>
+		const PAGER_CONTENT_SELECTOR = "' . $a["target"] . '";
+		const PAGER_BTN_SELECTOR = "#' . $id . '";
+		const $ORDER_CONTENT = $(document).find(PAGER_CONTENT_SELECTOR);
+
+		$(document).on("click", PAGER_BTN_SELECTOR, function (e) {
+			e.preventDefault();
+			const $loadBtn = $(this);
+			$loadBtn.text("Загрузка...");
+			$.ajax({
+				url: $loadBtn.attr("href"),
+				type: "GET",
+				success: function(response) {
+					$ORDER_CONTENT.append($(response).find(PAGER_CONTENT_SELECTOR).children());
+					if ($(response).find(PAGER_BTN_SELECTOR).length) {
+						$loadBtn.replaceWith($(response).find(PAGER_BTN_SELECTOR));
+					} else {
+						$loadBtn.hide();
+					}
+				}
+			});
+		});
+	</script>
+    ';
+
+
+    $loadLink = '<a class="loadmore__action hugeGreenBtn GreenBtnStyle h50 pull-reset mw300px mAuto m-wMax" 
+                    href="' . $urlPrefix . '&page=' . $nextPage . $adds . '">' . $nextPageText . '</a>';
+
+    return "<div class='loadmore mb50'>" . $loadLink . "</div>" . $js;
+
+}
+
+
 //Пагинацию нужно изменить, если будет использоваться в дальнейшем
 function insert_paging_block($a)
 {

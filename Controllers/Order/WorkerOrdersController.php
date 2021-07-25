@@ -42,7 +42,7 @@ class WorkerOrdersController extends BaseController {
 			"pagetitle" => \Translations::t("Заказы"),
 		];
 
-		$limit = \App::config("per_page_items");
+		$limit = \App::config("order.per_page_items");
 		$paging = new \Paging();
 		$paging->items_per_page = $limit;
 		$parameters["page_limit"] = $limit;

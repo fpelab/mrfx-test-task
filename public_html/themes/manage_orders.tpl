@@ -99,7 +99,7 @@
 					{/if}
 				</div>
 				<div class="t-align-c mb10">
-					{insert name=paging_block assign=pages value=a data=$pagingdata}
+					{insert name=loadmore_block  assign=pages value=a data=$pagingdata target=".m-order-table tbody"}
 					{$pages}
 				</div>
 			{/if}
