@@ -1109,6 +1109,12 @@ class KworkManager {
 		}
 
 		if ($this->title != "" && !$this->stagedOffer) {
+			if ($banWords = $this->hasBanWords($this->title)) {
+                $this->errors[] = [
+                    'target' => 'title',
+                    'text' => 'В названии найдены запрещенные слова: <b>' . implode(', ', $banWords) .'</b>. Пожалуйста, отредактируйте название'
+                ];
+            }
 			if (preg_match(self::REGEXP_TITLE, $this->title)) {
 				$this->errors[] = [
 					'target' => 'title',
@@ -1232,6 +1238,41 @@ class KworkManager {
 
 		return true;
 	}
+
+	/**
+	 * Очищаем строку от возможных знаков и убираем двойные пробелы
+	 *
+     * @param $text string
+     * @return string
+     */
+	private function clearString($text)
+	{
+		$text = str_replace(',', ' ', mb_strtolower($text));
+		return preg_replace('/\s+/', ' ', $text);
+	}
+
+	/**
+	 * Проверяем наличие запрещенных слов в строке
+	 *
+     * @param $text string
+     * @return false|string[]
+     */
+	private function hasBanWords($text)
+    {
+        $bansWords = \Model\BanWord::all(['word'])->toArray();
+        $bansWords = array_map(function($item) {
+            return mb_strtolower($item['word']);
+        }, $bansWords);
+
+        $inputWords = explode(' ', $this->clearString($text));
+        $foundBanWords = array_intersect($inputWords, $bansWords);
+        if (count($foundBanWords)) {
+            return array_map(function($item) {
+                return '"' . $item  . '"';
+            }, $foundBanWords);
+        }
+        return false;
+    }
 
 	/**
 	 * Получить длину описания
