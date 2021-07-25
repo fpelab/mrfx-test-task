@@ -574,7 +574,7 @@ function insert_loadmore_block($a)
     ';
 
 
-    $loadLink = '<a class="loadmore__action hugeGreenBtn GreenBtnStyle h50 pull-reset mw300px mAuto m-wMax" 
+    $loadLink = '<a id="' . $id . '" class="hugeGreenBtn GreenBtnStyle h50 pull-reset mw300px mAuto m-wMax" 
                     href="' . $urlPrefix . '&page=' . $nextPage . $adds . '">' . $nextPageText . '</a>';
 
     return "<div class='loadmore mb50'>" . $loadLink . "</div>" . $js;
