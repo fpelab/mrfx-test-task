@@ -12,6 +12,7 @@ class UpdateRatingsController extends BaseController {
 
 	public function __invoke(Request $request) {
 		$updated = KworkManager::calculateRatings();
-		return $this->success($updated);
+		$updated_category = KworkManager:: calculateCategoryRating();
+		return $this->success(array_merge($updated, $updated_category));
 	}
 }

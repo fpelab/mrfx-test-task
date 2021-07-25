@@ -5,6 +5,7 @@ namespace Controllers\Catalog;
 use Model\Category;
 use CategoryManager;
 use \App;
+use Model\Kwork;
 
 /**
  * Контроллер для отображения таба "Кворки" на странице каталога
@@ -62,8 +63,9 @@ class KworksViewController extends AbstractViewController {
 	 */
 	private function getResult() {
 		$sort = $this->getParam("s");
+		$orderField = ($this->alias === 'services') ? Kwork::FIELD_CATEGORY_RATING : null;
 		$pageData = $this->getParam("pageData");
-		$data = CategoryManager::getByCategory($this->filters, $sort, $pageData);
+		$data = CategoryManager::getByCategory($this->filters, $sort, $pageData, null, $orderField);
 		return $data;
 	}
 

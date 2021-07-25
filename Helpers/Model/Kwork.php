@@ -163,6 +163,11 @@ class Kwork extends Model {
 	 */
 	const FIELD_RATING = "rating";
 
+	/**
+	 * Рейтинг кворка для категорий 
+	 */
+	const FIELD_CATEGORY_RATING = "category_rating";
+
 	protected $table = self::TABLE_NAME;
 	protected $primaryKey = self::FIELD_PID;
 	public $timestamps = false;

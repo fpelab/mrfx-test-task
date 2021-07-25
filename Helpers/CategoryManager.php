@@ -792,8 +792,8 @@ class CategoryManager {
 	 *
 	 * @return array
 	 */
-	public static function getByCategory($filters, $sort, $pageData, $envData = null) {
-		return self::getByCategoryOld($filters, $sort, $pageData);
+	public static function getByCategory($filters, $sort, $pageData, $envData = null, $orderField = null) {
+		return self::getByCategoryOld($filters, $sort, $pageData, $orderField);
 	}
 
 
@@ -807,7 +807,11 @@ class CategoryManager {
 	 *
 	 * @return array
 	 */
-	public static function getByCategoryOld($filters, $sort, $pageData) {
+	public static function getByCategoryOld($filters, $sort, $pageData, $orderField = null) {
+
+		if (!$orderField) {
+	        $orderField = Kwork::FIELD_RATING;
+        }
 
 		$query = Kwork::query()
 			->select([
@@ -818,7 +822,7 @@ class CategoryManager {
 				return $join->on('posts.USERID', '=', 'members.USERID');
 			})
 			->where("posts." . Kwork::FIELD_ACTIVE, Kwork::FEAT_ACTIVE)
-			->orderByDesc(Kwork::FIELD_RATING)
+			->orderByDesc($orderField)
 			->limit($pageData["items_per_page"])
 			->offset($pageData["pagingstart"]);
 

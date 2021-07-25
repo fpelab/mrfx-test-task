@@ -1735,32 +1735,56 @@ class KworkManager {
 	 * @return array
 	 */
 	public static function calculateRatings() {
-		$info = [];
 		$yearAgo = date_create("last year");
-		Kwork::chunkById(1000, function(Collection $kworks) use (&$info, $yearAgo) {
-			$cases = [];
-			/** @var Kwork $kwork */
-			foreach ($kworks as $kwork) {
-				$doneOrders = $kwork
-					->orders()
-					->where(Order::FIELD_STATUS, OrderManager::STATUS_DONE)
-					->where(Order::FIELD_DATE_DONE, ">=", $yearAgo);
-				$count = $doneOrders->count();
-				$sum = $doneOrders->sum(Order::FIELD_PAYER_AMOUNT);
-				$rating = round($count * $sum * 0.01);
-				$cases[] = "when " . Kwork::FIELD_PID . " = {$kwork->PID} then {$rating}";
-				$info[$kwork->PID] = ["old" => $kwork->rating, "new" => $rating];
-			}
-
-			if (!empty($cases)) {
-				Kwork::whereKey($kworks->pluck(Kwork::FIELD_PID))
-					->update([
-						Kwork::FIELD_RATING => DB::raw("CASE " . implode(" ", $cases). " END"),
-					]);
-			}
-		});
-		return $info;
+		return self::calculateRatingsByDate($yearAgo, Kwork::FIELD_RATING);
 	}
+
+	/**
+     * Функция для пересчёта рейтингов кворков в категории
+     *
+     * @return array
+     */
+	public static function calculateCategoryRating()
+    {
+        $monthAgo = date_create("last month");
+        return self::calculateRatingsByDate($monthAgo, Kwork::FIELD_CATEGORY_RATING);
+    }
+
+    /**
+     * Функция для пересчёта рейтингов кворков
+     * @param $dateAgo DateTime дата, начиная с которой необходимо учитывать заказы
+     * @param $field string поле, которе необходимо обновить
+     *
+     * @return array
+     */
+	private static function calculateRatingsByDate($dateAgo, $field)
+    {
+        $info = [];
+        Kwork::chunkById(1000, function(Collection $kworks) use (&$info, $dateAgo, $field) {
+            $cases = [];
+            /** @var Kwork $kwork */
+            foreach ($kworks as $kwork) {
+                $doneOrders = $kwork
+                    ->orders()
+                    ->where(Order::FIELD_STATUS, OrderManager::STATUS_DONE)
+                    ->where(Order::FIELD_DATE_DONE, ">=", $dateAgo);
+                $count = $doneOrders->count();
+                $sum = $doneOrders->sum(Order::FIELD_PAYER_AMOUNT);
+                $rating = round($count * $sum * 0.01);
+                $cases[] = "when " . Kwork::FIELD_PID . " = {$kwork->PID} then {$rating}";
+                $info[($kwork->PID . '_' . $field)] = ["old" => $kwork->{$field}, "new" => $rating];
+            }
+
+            if (!empty($cases)) {
+                Kwork::whereKey($kworks->pluck(Kwork::FIELD_PID))
+                    ->update([
+                        $field => DB::raw("CASE " . implode(" ", $cases). " END"),
+                    ]);
+            }
+        });
+        return $info;
+    }
+
 
 	/**
 	 * Подсчет рейтинга качества кворков
